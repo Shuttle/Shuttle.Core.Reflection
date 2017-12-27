@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<package>
+  <metadata>
+    <id>Shuttle.Core.Reflection</id>
+    <version>{semver}</version>
+    <authors>Eben Roux</authors>
+    <owners>Eben Roux</owners>
+    <licenseUrl>https://github.com/shuttle/Shuttle.Core.Reflection/raw/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/shuttle/Shuttle.Core.Reflection</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/Shuttle/Shuttle.Core.Reflection/master/.media/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Reflection infrastructure components.</description>
+    <releaseNotes />
+    <copyright>Copyright (c) {year}, Eben Roux</copyright>
+    <tags>shuttle reflection</tags>
+    <dependencies>
+      <dependency id="Shuttle.Core.Logging" version="{Shuttle.Core.Logging-version}" />
+    </dependencies>
+  </metadata>
+</package>
