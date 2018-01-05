@@ -70,6 +70,24 @@ namespace Shuttle.Core.Reflection {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enumerable contained no elements matching type &apos;{0}&apos;..
+        /// </summary>
+        public static string EnemerableNoMatchException {
+            get {
+                return ResourceManager.GetString("EnemerableNoMatchException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enumerable contains {0} elements matching type &apos;{1}&apos;..
+        /// </summary>
+        public static string EnumerableFoundTooManyException {
+            get {
+                return ResourceManager.GetString("EnumerableFoundTooManyException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Returned null from call to &apos;GetFileNameWithoutExtension&apos; for value &apos;{0}&apos;..
         /// </summary>
         public static string GetFileNameWithoutExtensionException {
