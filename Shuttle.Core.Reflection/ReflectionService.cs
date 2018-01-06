@@ -160,7 +160,11 @@ namespace Shuttle.Core.Reflection
 
         public IEnumerable<Assembly> GetMatchingAssemblies(string regex, string folder)
         {
-            var expression = new Regex(regex, RegexOptions.IgnoreCase);
+            return GetMatchingAssemblies(new Regex(regex, RegexOptions.IgnoreCase), folder);
+		}
+
+        private IEnumerable<Assembly> GetMatchingAssemblies(Regex expression, string folder)
+        {
             var result = new List<Assembly>();
 
             if (Directory.Exists(folder))
@@ -175,14 +179,16 @@ namespace Shuttle.Core.Reflection
                         .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
                         .Select(GetAssembly)
                         .Where(assembly => assembly != null));
-			}
+            }
 
-			return result;
-		}
+            return result;
+        }
 
         public IEnumerable<Assembly> GetMatchingAssemblies(string regex)
         {
-            var assemblies = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies());
+            var expression = new Regex(regex, RegexOptions.IgnoreCase);
+            var assemblies = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies()
+                .Where(assembly => expression.IsMatch(assembly.FullName)));
 
 			foreach (
 				var assembly in
