@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Microsoft.DotNet.PlatformAbstractions;
+using Microsoft.Extensions.DependencyModel;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
 
@@ -35,7 +37,7 @@ namespace Shuttle.Core.Reflection
 
 		public Assembly GetAssembly(string assemblyPath)
 		{
-            var result = AppDomain.CurrentDomain.GetAssemblies()
+            var result = RuntimeAssemblies()
                 .FirstOrDefault(assembly => AssemblyPath(assembly)
                     .Equals(assemblyPath, StringComparison.InvariantCultureIgnoreCase));
 
@@ -102,7 +104,7 @@ namespace Shuttle.Core.Reflection
                 hasFileExtension = true;
             }
 
-            var result = AppDomain.CurrentDomain.GetAssemblies()
+            var result = RuntimeAssemblies()
                 .FirstOrDefault(assembly => assembly.GetName()
                     .Name.Equals(assemblyName, StringComparison.InvariantCultureIgnoreCase));
 
@@ -186,9 +188,7 @@ namespace Shuttle.Core.Reflection
 
         public IEnumerable<Assembly> GetMatchingAssemblies(string regex)
         {
-            var expression = new Regex(regex, RegexOptions.IgnoreCase);
-            var assemblies = new List<Assembly>(AppDomain.CurrentDomain.GetAssemblies()
-                .Where(assembly => expression.IsMatch(assembly.FullName)));
+            var assemblies = new List<Assembly>(RuntimeAssemblies());
 
 			foreach (
 				var assembly in
@@ -215,7 +215,19 @@ namespace Shuttle.Core.Reflection
 			return assemblies;
 		}
 
-		public IEnumerable<Type> GetTypes<T>()
+	    public IEnumerable<Assembly> RuntimeAssemblies()
+	    {
+	        var result = new List<Assembly>();
+
+	        foreach (var runtimeAssemblyName in DependencyContext.Default.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier()))
+	        {
+	            result.Add(Assembly.Load(runtimeAssemblyName));
+	        }
+
+	        return result;
+	    }
+
+	    public IEnumerable<Type> GetTypes<T>()
 		{
 			return GetTypes(typeof(T));
 		}

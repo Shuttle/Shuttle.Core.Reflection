@@ -16,6 +16,7 @@
     <tags>shuttle reflection</tags>
     <dependencies>
       <dependency id="Shuttle.Core.Logging" version="{Shuttle.Core.Logging-version}" />
+      <dependency id="Microsoft.Extensions.DependencyModel" version="{Microsoft.Extensions.DependencyModel-version}" />
     </dependencies>
   </metadata>
 </package>
