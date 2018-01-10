@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Microsoft.DotNet.PlatformAbstractions;
-using Microsoft.Extensions.DependencyModel;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
+#if (NETCOREAPP2_0 || NETSTANDARD2_0)
+using Microsoft.DotNet.PlatformAbstractions;
+using Microsoft.Extensions.DependencyModel;
+#endif
 
 namespace Shuttle.Core.Reflection
 {
@@ -37,7 +39,7 @@ namespace Shuttle.Core.Reflection
 
 		public Assembly GetAssembly(string assemblyPath)
 		{
-            var result = RuntimeAssemblies()
+            var result = GetRuntimeAssemblies()
                 .FirstOrDefault(assembly => AssemblyPath(assembly)
                     .Equals(assemblyPath, StringComparison.InvariantCultureIgnoreCase));
 
@@ -104,7 +106,7 @@ namespace Shuttle.Core.Reflection
                 hasFileExtension = true;
             }
 
-            var result = RuntimeAssemblies()
+            var result = GetRuntimeAssemblies()
                 .FirstOrDefault(assembly => assembly.GetName()
                     .Name.Equals(assemblyName, StringComparison.InvariantCultureIgnoreCase));
 
@@ -188,7 +190,7 @@ namespace Shuttle.Core.Reflection
 
         public IEnumerable<Assembly> GetMatchingAssemblies(string regex)
         {
-            var assemblies = new List<Assembly>(RuntimeAssemblies());
+            var assemblies = new List<Assembly>(GetRuntimeAssemblies());
 
 			foreach (
 				var assembly in
@@ -215,9 +217,12 @@ namespace Shuttle.Core.Reflection
 			return assemblies;
 		}
 
-	    public IEnumerable<Assembly> RuntimeAssemblies()
+	    public IEnumerable<Assembly> GetRuntimeAssemblies()
 	    {
-	        var result = new List<Assembly>();
+#if (!NETCOREAPP2_0 && !NETSTANDARD2_0)
+	        return AppDomain.CurrentDomain.GetAssemblies();
+#else
+            var result = new List<Assembly>();
 
 	        foreach (var runtimeAssemblyName in DependencyContext.Default.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier()))
 	        {
@@ -225,20 +230,21 @@ namespace Shuttle.Core.Reflection
 	        }
 
 	        return result;
-	    }
+#endif
+        }
 
-	    public IEnumerable<Type> GetTypes<T>()
+        public IEnumerable<Type> GetTypesAssignableTo<T>()
 		{
-			return GetTypes(typeof(T));
+			return GetTypesAssignableTo(typeof(T));
 		}
 
-		public IEnumerable<Type> GetTypes(Type type)
+		public IEnumerable<Type> GetTypesAssignableTo(Type type)
 		{
 			var result = new List<Type>();
 
 			foreach (var assembly in GetAssemblies())
 			{
-				GetTypes(type, assembly)
+				GetTypesAssignableTo(type, assembly)
 					.Where(candidate => result.Find(existing => existing == candidate) == null)
 					.ToList()
 					.ForEach(add => result.Add(add));
@@ -247,20 +253,20 @@ namespace Shuttle.Core.Reflection
 			return result;
 		}
 
-		public IEnumerable<Type> GetTypes<T>(Assembly assembly)
+		public IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly)
 		{
-			return GetTypes(typeof(T), assembly);
+			return GetTypesAssignableTo(typeof(T), assembly);
 		}
 
-		public IEnumerable<Type> GetTypes(Type type, Assembly assembly)
+		public IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly)
 		{
 			Guard.AgainstNull(type, nameof(type));
 			Guard.AgainstNull(assembly, nameof(assembly));
 
-			return GetTypes(assembly).Where(candidate => candidate.IsAssignableTo(type) && candidate != type).ToList();
+			return GetTypesAssignableTo(assembly).Where(candidate => candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
 		}
 
-		public IEnumerable<Type> GetTypes(Assembly assembly)
+		public IEnumerable<Type> GetTypesAssignableTo(Assembly assembly)
 		{
 			Type[] types;
 

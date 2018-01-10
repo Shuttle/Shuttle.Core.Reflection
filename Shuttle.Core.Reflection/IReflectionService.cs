@@ -13,11 +13,11 @@ namespace Shuttle.Core.Reflection
 		IEnumerable<Assembly> GetAssemblies();
         IEnumerable<Assembly> GetMatchingAssemblies(string regex, string folder);
 		IEnumerable<Assembly> GetMatchingAssemblies(string regex);
-		IEnumerable<Assembly> RuntimeAssemblies();
-		IEnumerable<Type> GetTypes<T>();
-		IEnumerable<Type> GetTypes(Type type);
-		IEnumerable<Type> GetTypes(Assembly assembly);
-		IEnumerable<Type> GetTypes<T>(Assembly assembly);
-		IEnumerable<Type> GetTypes(Type type, Assembly assembly);
+		IEnumerable<Assembly> GetRuntimeAssemblies();
+		IEnumerable<Type> GetTypesAssignableTo<T>();
+		IEnumerable<Type> GetTypesAssignableTo(Type type);
+		IEnumerable<Type> GetTypesAssignableTo(Assembly assembly);
+		IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly);
+		IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly);
     }
 }
