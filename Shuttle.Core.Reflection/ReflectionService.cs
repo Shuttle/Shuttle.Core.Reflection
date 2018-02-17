@@ -263,10 +263,10 @@ namespace Shuttle.Core.Reflection
 			Guard.AgainstNull(type, nameof(type));
 			Guard.AgainstNull(assembly, nameof(assembly));
 
-			return GetTypesAssignableTo(assembly).Where(candidate => candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
+			return GetTypes(assembly).Where(candidate => candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
 		}
 
-		public IEnumerable<Type> GetTypesAssignableTo(Assembly assembly)
+		public IEnumerable<Type> GetTypes(Assembly assembly)
 		{
 			Type[] types;
 

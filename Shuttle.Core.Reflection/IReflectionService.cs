@@ -16,7 +16,7 @@ namespace Shuttle.Core.Reflection
 		IEnumerable<Assembly> GetRuntimeAssemblies();
 		IEnumerable<Type> GetTypesAssignableTo<T>();
 		IEnumerable<Type> GetTypesAssignableTo(Type type);
-		IEnumerable<Type> GetTypesAssignableTo(Assembly assembly);
+		IEnumerable<Type> GetTypes(Assembly assembly);
 		IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly);
 		IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly);
     }
