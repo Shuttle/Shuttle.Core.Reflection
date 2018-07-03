@@ -13,82 +13,83 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace Shuttle.Core.Reflection
 {
-	public class ReflectionService : IReflectionService
-	{
+    public class ReflectionService : IReflectionService
+    {
         private readonly List<string> _assemblyExtensions = new List<string>
         {
             ".dll",
             ".exe"
         };
 
-		private readonly ILog _log;
+        private readonly ILog _log;
 
-		public ReflectionService()
-		{
-			_log = Log.For(this);
-		}
+        public ReflectionService()
+        {
+            _log = Log.For(this);
+        }
 
-		public string AssemblyPath(Assembly assembly)
-		{
-			Guard.AgainstNull(assembly, nameof(assembly));
+        public string AssemblyPath(Assembly assembly)
+        {
+            Guard.AgainstNull(assembly, nameof(assembly));
 
-			return !assembly.IsDynamic
-				? new Uri(Uri.UnescapeDataString(new UriBuilder(assembly.CodeBase).Path)).LocalPath
-				: string.Empty;
-		}
+            return !assembly.IsDynamic
+                ? new Uri(Uri.UnescapeDataString(new UriBuilder(assembly.CodeBase).Path)).LocalPath
+                : string.Empty;
+        }
 
-		public Assembly GetAssembly(string assemblyPath)
-		{
+        public Assembly GetAssembly(string assemblyPath)
+        {
             var result = GetRuntimeAssemblies()
                 .FirstOrDefault(assembly => AssemblyPath(assembly)
                     .Equals(assemblyPath, StringComparison.InvariantCultureIgnoreCase));
 
-			if (result != null)
-			{
-				return result;
-			}
+            if (result != null)
+            {
+                return result;
+            }
 
-			try
-			{
-				switch (Path.GetExtension(assemblyPath))
-				{
-					case ".dll":
-					case ".exe":
-						{
-							result = Path.GetDirectoryName(assemblyPath) == AppDomain.CurrentDomain.BaseDirectory
-								? Assembly.Load(Path.GetFileNameWithoutExtension(assemblyPath) ?? throw new InvalidOperationException(string.Format(Resources.GetFileNameWithoutExtensionException, assemblyPath)))
-								: Assembly.LoadFile(assemblyPath);
-							break;
-						}
+            try
+            {
+                switch (Path.GetExtension(assemblyPath))
+                {
+                    case ".dll":
+                    case ".exe":
+                        {
+                            result = Path.GetDirectoryName(assemblyPath) == AppDomain.CurrentDomain.BaseDirectory
+                                ? Assembly.Load(Path.GetFileNameWithoutExtension(assemblyPath) ??
+                                                throw new InvalidOperationException(string.Format(Resources.GetFileNameWithoutExtensionException, assemblyPath)))
+                                : Assembly.LoadFile(assemblyPath);
+                            break;
+                        }
 
-					default:
-						{
-							result = Assembly.Load(assemblyPath);
+                    default:
+                        {
+                            result = Assembly.Load(assemblyPath);
 
-							break;
-						}
-				}
-			}
-			catch (Exception ex)
-			{
-				_log.Warning(string.Format(Resources.AssemblyLoadException, assemblyPath, ex.Message));
+                            break;
+                        }
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Warning(string.Format(Resources.AssemblyLoadException, assemblyPath, ex.Message));
 
-			    if (ex is ReflectionTypeLoadException reflection)
-				{
-					foreach (var exception in reflection.LoaderExceptions)
-					{
+                if (ex is ReflectionTypeLoadException reflection)
+                {
+                    foreach (var exception in reflection.LoaderExceptions)
+                    {
                         _log.Trace($"'{exception.Message}'.");
-					}
-				}
-				else
-				{
+                    }
+                }
+                else
+                {
                     _log.Trace($"{ex.GetType()}: '{ex.Message}'.");
-				}
+                }
 
-				return null;
-			}
+                return null;
+            }
 
-			return result;
+            return result;
         }
 
         public Assembly FindAssemblyNamed(string name)
@@ -165,7 +166,7 @@ namespace Shuttle.Core.Reflection
         public IEnumerable<Assembly> GetMatchingAssemblies(string regex, string folder)
         {
             return GetMatchingAssemblies(new Regex(regex, RegexOptions.IgnoreCase), folder);
-		}
+        }
 
         private IEnumerable<Assembly> GetMatchingAssemblies(Regex expression, string folder)
         {
@@ -192,35 +193,35 @@ namespace Shuttle.Core.Reflection
         {
             var assemblies = new List<Assembly>(GetRuntimeAssemblies());
 
-			foreach (
-				var assembly in
+            foreach (
+                var assembly in
                 GetMatchingAssemblies(regex, AppDomain.CurrentDomain.BaseDirectory)
-						.Where(assembly => assemblies.Find(candidate => candidate.Equals(assembly)) == null))
-			{
-				assemblies.Add(assembly);
-			}
+                    .Where(assembly => assemblies.Find(candidate => candidate.Equals(assembly)) == null))
+            {
+                assemblies.Add(assembly);
+            }
 
-			var privateBinPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-				AppDomain.CurrentDomain.RelativeSearchPath ?? string.Empty);
+            var privateBinPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                AppDomain.CurrentDomain.RelativeSearchPath ?? string.Empty);
 
-			if (!privateBinPath.Equals(AppDomain.CurrentDomain.BaseDirectory))
-			{
-				foreach (
-					var assembly in
+            if (!privateBinPath.Equals(AppDomain.CurrentDomain.BaseDirectory))
+            {
+                foreach (
+                    var assembly in
                     GetMatchingAssemblies(regex, privateBinPath)
-							.Where(assembly => assemblies.Find(candidate => candidate.Equals(assembly)) == null))
-				{
-					assemblies.Add(assembly);
-				}
-			}
+                        .Where(assembly => assemblies.Find(candidate => candidate.Equals(assembly)) == null))
+                {
+                    assemblies.Add(assembly);
+                }
+            }
 
-			return assemblies;
-		}
+            return assemblies;
+        }
 
-	    public IEnumerable<Assembly> GetRuntimeAssemblies()
-	    {
+        public IEnumerable<Assembly> GetRuntimeAssemblies()
+        {
 #if (!NETCOREAPP2_0 && !NETSTANDARD2_0)
-	        return AppDomain.CurrentDomain.GetAssemblies();
+            return AppDomain.CurrentDomain.GetAssemblies();
 #else
             var result = new List<Assembly>();
 
@@ -234,66 +235,66 @@ namespace Shuttle.Core.Reflection
         }
 
         public IEnumerable<Type> GetTypesAssignableTo<T>()
-		{
-			return GetTypesAssignableTo(typeof(T));
-		}
+        {
+            return GetTypesAssignableTo(typeof(T));
+        }
 
-		public IEnumerable<Type> GetTypesAssignableTo(Type type)
-		{
-			var result = new List<Type>();
+        public IEnumerable<Type> GetTypesAssignableTo(Type type)
+        {
+            var result = new List<Type>();
 
-			foreach (var assembly in GetAssemblies())
-			{
-				GetTypesAssignableTo(type, assembly)
-					.Where(candidate => result.Find(existing => existing == candidate) == null)
-					.ToList()
-					.ForEach(add => result.Add(add));
-			}
+            foreach (var assembly in GetAssemblies())
+            {
+                GetTypesAssignableTo(type, assembly)
+                    .Where(candidate => result.Find(existing => existing == candidate) == null)
+                    .ToList()
+                    .ForEach(add => result.Add(add));
+            }
 
-			return result;
-		}
+            return result;
+        }
 
-		public IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly)
-		{
-			return GetTypesAssignableTo(typeof(T), assembly);
-		}
+        public IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly)
+        {
+            return GetTypesAssignableTo(typeof(T), assembly);
+        }
 
-		public IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly)
-		{
-			Guard.AgainstNull(type, nameof(type));
-			Guard.AgainstNull(assembly, nameof(assembly));
+        public IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly)
+        {
+            Guard.AgainstNull(type, nameof(type));
+            Guard.AgainstNull(assembly, nameof(assembly));
 
-			return GetTypes(assembly).Where(candidate => candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
-		}
+            return GetTypes(assembly).Where(candidate => candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
+        }
 
-		public IEnumerable<Type> GetTypes(Assembly assembly)
-		{
-			Type[] types;
+        public IEnumerable<Type> GetTypes(Assembly assembly)
+        {
+            Type[] types;
 
-			try
-			{
-				_log.Trace(string.Format(Resources.TraceGetTypesFromAssembly, assembly));
+            try
+            {
+                _log.Trace(string.Format(Resources.TraceGetTypesFromAssembly, assembly));
 
-				types = assembly.GetTypes();
-			}
-			catch (Exception ex)
-			{
-			    if (ex is ReflectionTypeLoadException reflection)
-				{
-					foreach (var exception in reflection.LoaderExceptions)
-					{
+                types = assembly.GetTypes();
+            }
+            catch (Exception ex)
+            {
+                if (ex is ReflectionTypeLoadException reflection)
+                {
+                    foreach (var exception in reflection.LoaderExceptions)
+                    {
                         _log.Error($"'{exception.Message}'.");
-					}
-				}
-				else
-				{
+                    }
+                }
+                else
+                {
                     _log.Error($"{ex.GetType()}: '{ex.Message}'.");
-				}
+                }
 
-				return new List<Type>();
-			}
+                return new List<Type>();
+            }
 
-			return types;
-		}
-	}
+            return types;
+        }
+    }
 }
