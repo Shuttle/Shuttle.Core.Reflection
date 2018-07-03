@@ -1,7 +1,7 @@
 # Shuttle.Core.Reflection
 
 ```
-PM> Install-Package Shuttle.Core.Autofac
+PM> Install-Package Shuttle.Core.Reflection
 ```
 
 Provides various methods to facilitate reflection handling.
@@ -61,4 +61,13 @@ IEnumerable<Type> GetTypes(Assembly assembly)
 ```
 
 Returns all types in the given `assembly`.
+
+``` c#
+IEnumerable<Type> GetTypesAssignableTo<T>()
+IEnumerable<Type> GetTypesAssignableTo(Type type)
+IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly)
+IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly)
+```
+
+Returns all the types in the given `assembly` that are assignable to the `type` or `typeof(T)`; if no `assembly` is provided the all assemblies returned by `GetAssemblies()` will be scanned.
 
