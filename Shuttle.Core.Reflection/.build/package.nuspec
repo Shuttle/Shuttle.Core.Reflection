@@ -9,6 +9,7 @@
     <licenseUrl>https://github.com/shuttle/Shuttle.Core.Reflection/raw/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/shuttle/Shuttle.Core.Reflection</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/Shuttle/Shuttle.Core.Reflection/master/.media/logo.png</iconUrl>
+    <repository type="git" url="https://github.com/Shuttle/Shuttle.Core.Reflection.git" />
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Reflection infrastructure components.</description>
     <releaseNotes />

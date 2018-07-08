@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
-#if (NETCOREAPP2_0 || NETSTANDARD2_0)
+#if (NETCOREAPP2_0 || NETCOREAPP2_1 || NETSTANDARD2_0)
 using Microsoft.DotNet.PlatformAbstractions;
 using Microsoft.Extensions.DependencyModel;
 #endif
@@ -220,7 +220,7 @@ namespace Shuttle.Core.Reflection
 
         public IEnumerable<Assembly> GetRuntimeAssemblies()
         {
-#if (!NETCOREAPP2_0 && !NETSTANDARD2_0)
+#if (!NETCOREAPP2_0 && !NETCOREAPP2_1 && !NETSTANDARD2_0)
             return AppDomain.CurrentDomain.GetAssemblies();
 #else
             var result = new List<Assembly>();
