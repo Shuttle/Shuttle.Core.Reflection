@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
 using Shuttle.Core.Contract;
 
@@ -7,6 +6,28 @@ namespace Shuttle.Core.Reflection
 {
     public static class ExceptionExtensions
     {
+        public static T Find<T>(this Exception ex) where T : Exception
+        {
+            var enumerator = ex;
+
+            while (enumerator != null)
+            {
+                if (enumerator is T result)
+                {
+                    return result;
+                }
+
+                enumerator = enumerator.InnerException;
+            }
+
+            return null;
+        }
+
+        public static bool Contains<T>(this Exception ex) where T : Exception
+        {
+            return ex.Find<T>() != null;
+        }
+
         public static string AllMessages(this Exception ex)
         {
             var messages = new StringBuilder();
