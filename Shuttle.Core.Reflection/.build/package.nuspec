@@ -15,8 +15,17 @@
     <copyright>Copyright (c) {year}, Eben Roux</copyright>
     <tags>shuttle reflection</tags>
     <dependencies>
-      <dependency id="Shuttle.Core.Logging" version="{Shuttle.Core.Logging-version}" />
-      <dependency id="Microsoft.Extensions.DependencyModel" version="{Microsoft.Extensions.DependencyModel-version}" />
+      <group targetFramework="netstandard2.0">
+        <dependency id="Shuttle.Core.Logging" version="{Shuttle.Core.Logging-version}" />
+        <dependency id="Microsoft.DotNet.PlatformAbstractions" version="{Microsoft.DotNet.PlatformAbstractions-version}" />
+        <dependency id="Microsoft.Extensions.DependencyModel" version="{Microsoft.Extensions.DependencyModel-version}" />
+      </group>
+
+      <group targetFramework="netstandard2.1">
+        <dependency id="Shuttle.Core.Logging" version="{Shuttle.Core.Logging-version}" />
+        <dependency id="Microsoft.DotNet.PlatformAbstractions" version="{Microsoft.DotNet.PlatformAbstractions-version}" />
+        <dependency id="Microsoft.Extensions.DependencyModel" version="{Microsoft.Extensions.DependencyModel-version}" />
+      </group>
     </dependencies>
   </metadata>
   <files>
