@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Shuttle.Core.Reflection
 {
@@ -9,15 +10,11 @@ namespace Shuttle.Core.Reflection
         string AssemblyPath(Assembly assembly);
         Assembly GetAssembly(string assemblyPath);
         Assembly FindAssemblyNamed(string name);
-        IEnumerable<Assembly> GetAssemblies(string folder);
-        IEnumerable<Assembly> GetAssemblies();
-        IEnumerable<Assembly> GetMatchingAssemblies(string regex, string folder);
-        IEnumerable<Assembly> GetMatchingAssemblies(string regex);
-        IEnumerable<Assembly> GetRuntimeAssemblies();
-        IEnumerable<Type> GetTypesAssignableTo<T>();
+        IEnumerable<Assembly> GetMatchingAssemblies(Regex regex);
         IEnumerable<Type> GetTypesAssignableTo(Type type);
         IEnumerable<Type> GetTypes(Assembly assembly);
-        IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly);
         IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly);
+        Type GetType(string typeName);
+        IEnumerable<Assembly> GetRuntimeAssemblies();
     }
 }

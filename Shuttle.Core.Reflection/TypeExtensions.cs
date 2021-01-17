@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using Shuttle.Core.Contract;
 
@@ -86,7 +87,7 @@ namespace Shuttle.Core.Reflection
             Guard.AgainstNull(type, nameof(type));
 
             AssertDefaultConstructor(type,
-                string.Format("Type '{0}' does not have a default constructor.", type.FullName));
+                $"Type '{type.FullName}' does not have a default constructor.");
         }
 
         public static void AssertDefaultConstructor(this Type type, string message)

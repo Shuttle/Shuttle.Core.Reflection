@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Core.Reflection", "Shuttle.Core.Reflection\Shuttle.Core.Reflection.csproj", "{8D0B93C0-CEDA-496C-A4D6-864AEBC0DBF2}"
 EndProject
@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Core.Reflection.Tests", "Shuttle.Core.Reflection.Tests\Shuttle.Core.Reflection.Tests.csproj", "{2FDC00C6-812F-4ED8-BFEC-361725777049}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Core.Reflection.Tests", "Shuttle.Core.Reflection.Tests\Shuttle.Core.Reflection.Tests.csproj", "{2FDC00C6-812F-4ED8-BFEC-361725777049}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

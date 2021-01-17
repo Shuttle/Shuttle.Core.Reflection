@@ -4,10 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyModel;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
-using Microsoft.DotNet.PlatformAbstractions;
-using Microsoft.Extensions.DependencyModel;
 
 namespace Shuttle.Core.Reflection
 {
@@ -52,20 +51,22 @@ namespace Shuttle.Core.Reflection
                 {
                     case ".dll":
                     case ".exe":
-                        {
-                            result = Path.GetDirectoryName(assemblyPath) == AppDomain.CurrentDomain.BaseDirectory
-                                ? Assembly.Load(Path.GetFileNameWithoutExtension(assemblyPath) ??
-                                                throw new InvalidOperationException(string.Format(Resources.GetFileNameWithoutExtensionException, assemblyPath)))
-                                : Assembly.LoadFile(assemblyPath);
-                            break;
-                        }
+                    {
+                        result = Path.GetDirectoryName(assemblyPath) == AppDomain.CurrentDomain.BaseDirectory
+                            ? Assembly.Load(Path.GetFileNameWithoutExtension(assemblyPath) ??
+                                            throw new InvalidOperationException(
+                                                string.Format(Resources.GetFileNameWithoutExtensionException,
+                                                    assemblyPath)))
+                            : Assembly.LoadFile(assemblyPath);
+                        break;
+                    }
 
                     default:
-                        {
-                            result = Assembly.Load(assemblyPath);
+                    {
+                        result = Assembly.Load(assemblyPath);
 
-                            break;
-                        }
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -151,44 +152,10 @@ namespace Shuttle.Core.Reflection
             return null;
         }
 
-        public IEnumerable<Assembly> GetAssemblies(string folder)
+        public IEnumerable<Assembly> GetMatchingAssemblies(Regex regex)
         {
-            return GetMatchingAssemblies(string.Empty, folder);
-        }
+            Guard.AgainstNull(regex, nameof(regex));
 
-        public IEnumerable<Assembly> GetAssemblies()
-        {
-            return GetMatchingAssemblies(string.Empty);
-        }
-
-        public IEnumerable<Assembly> GetMatchingAssemblies(string regex, string folder)
-        {
-            return GetMatchingAssemblies(new Regex(regex, RegexOptions.IgnoreCase), folder);
-        }
-
-        private IEnumerable<Assembly> GetMatchingAssemblies(Regex expression, string folder)
-        {
-            var result = new List<Assembly>();
-
-            if (Directory.Exists(folder))
-            {
-                result.AddRange(
-                    Directory.GetFiles(folder, "*.exe")
-                        .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
-                        .Select(GetAssembly)
-                        .Where(assembly => assembly != null));
-                result.AddRange(
-                    Directory.GetFiles(folder, "*.dll")
-                        .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
-                        .Select(GetAssembly)
-                        .Where(assembly => assembly != null));
-            }
-
-            return result;
-        }
-
-        public IEnumerable<Assembly> GetMatchingAssemblies(string regex)
-        {
             var assemblies = new List<Assembly>(GetRuntimeAssemblies());
 
             foreach (
@@ -219,25 +186,33 @@ namespace Shuttle.Core.Reflection
         public IEnumerable<Assembly> GetRuntimeAssemblies()
         {
             var result = new List<Assembly>();
+            var dependencyContext = DependencyContext.Default;
 
-	        foreach (var runtimeAssemblyName in DependencyContext.Default.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier()))
-	        {
-	            result.Add(Assembly.Load(runtimeAssemblyName));
-	        }
+            if (dependencyContext != null)
+            {
+                foreach (var runtimeAssemblyName in dependencyContext.GetRuntimeAssemblyNames(Environment.OSVersion
+                    .Platform.ToString()))
+                {
+                    result.Add(Assembly.Load(runtimeAssemblyName));
+                }
+            }
 
-	        return result;
-        }
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (result.All(item => item.GetName().Equals(assembly.GetName())))
+                {
+                    result.Add(assembly);
+                }
+            }
 
-        public IEnumerable<Type> GetTypesAssignableTo<T>()
-        {
-            return GetTypesAssignableTo(typeof(T));
+            return result;
         }
 
         public IEnumerable<Type> GetTypesAssignableTo(Type type)
         {
             var result = new List<Type>();
 
-            foreach (var assembly in GetAssemblies())
+            foreach (var assembly in this.GetAssemblies())
             {
                 GetTypesAssignableTo(type, assembly)
                     .Where(candidate => result.Find(existing => existing == candidate) == null)
@@ -248,17 +223,38 @@ namespace Shuttle.Core.Reflection
             return result;
         }
 
-        public IEnumerable<Type> GetTypesAssignableTo<T>(Assembly assembly)
-        {
-            return GetTypesAssignableTo(typeof(T), assembly);
-        }
-
         public IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly)
         {
             Guard.AgainstNull(type, nameof(type));
             Guard.AgainstNull(assembly, nameof(assembly));
 
-            return GetTypes(assembly).Where(candidate => candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
+            return GetTypes(assembly).Where(candidate =>
+                candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
+        }
+
+        public Type GetType(string typeName)
+        {
+            return Type.GetType(typeName,
+                assemblyName =>
+                {
+                    Assembly assembly;
+
+                    try
+                    {
+                        assembly = Assembly.LoadFrom(
+                            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{assemblyName.Name}.dll"));
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new ApplicationException(string.Format(Resources.AssemblyLoadException, assemblyName.Name,
+                            typeName, ex.Message));
+                    }
+
+                    return assembly;
+                },
+                (assembly, typeNameSought, ignore) => assembly == null
+                    ? Type.GetType(typeNameSought, false, ignore)
+                    : assembly.GetType(typeNameSought, false, ignore));
         }
 
         public IEnumerable<Type> GetTypes(Assembly assembly)
@@ -289,6 +285,27 @@ namespace Shuttle.Core.Reflection
             }
 
             return types;
+        }
+
+        private IEnumerable<Assembly> GetMatchingAssemblies(Regex expression, string folder)
+        {
+            var result = new List<Assembly>();
+
+            if (Directory.Exists(folder))
+            {
+                result.AddRange(
+                    Directory.GetFiles(folder, "*.exe")
+                        .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
+                        .Select(GetAssembly)
+                        .Where(assembly => assembly != null));
+                result.AddRange(
+                    Directory.GetFiles(folder, "*.dll")
+                        .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
+                        .Select(GetAssembly)
+                        .Where(assembly => assembly != null));
+            }
+
+            return result;
         }
     }
 }

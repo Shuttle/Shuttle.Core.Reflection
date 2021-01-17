@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace Shuttle.Core.Reflection.Tests
