@@ -7,6 +7,9 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyModel;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
+#if NETCOREAPP
+using System.Runtime.Loader;
+#endif
 
 namespace Shuttle.Core.Reflection
 {
@@ -47,48 +50,43 @@ namespace Shuttle.Core.Reflection
 
             try
             {
-                switch (Path.GetExtension(assemblyPath))
-                {
-                    case ".dll":
-                    case ".exe":
-                    {
-                        result = Path.GetDirectoryName(assemblyPath) == AppDomain.CurrentDomain.BaseDirectory
-                            ? Assembly.Load(Path.GetFileNameWithoutExtension(assemblyPath) ??
-                                            throw new InvalidOperationException(
-                                                string.Format(Resources.GetFileNameWithoutExtensionException,
-                                                    assemblyPath)))
-                            : Assembly.LoadFile(assemblyPath);
-                        break;
-                    }
+                var fileName = Path.GetFileNameWithoutExtension(assemblyPath);
 
-                    default:
-                    {
-                        result = Assembly.Load(assemblyPath);
+#if NETCOREAPP
+                var inCompileLibraries = DependencyContext.Default.CompileLibraries.Any(library => library.Name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
+                var inRuntimeLibraries = DependencyContext.Default.RuntimeLibraries.Any(library => library.Name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
-                        break;
-                    }
-                }
+                var assembly = (inCompileLibraries || inRuntimeLibraries)
+                    ? Assembly.Load(new AssemblyName(fileName))
+                    : AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
+
+                return assembly;
+#else
+                return Assembly.Load(new AssemblyName(fileName));
+#endif
+
             }
             catch (Exception ex)
             {
                 _log.Warning(string.Format(Resources.AssemblyLoadException, assemblyPath, ex.Message));
 
-                if (ex is ReflectionTypeLoadException reflection)
+                if (Log.IsTraceEnabled)
                 {
-                    foreach (var exception in reflection.LoaderExceptions)
+                    if (ex is ReflectionTypeLoadException reflection)
                     {
-                        _log.Trace($"'{exception.Message}'.");
+                        foreach (var exception in reflection.LoaderExceptions)
+                        {
+                            _log.Trace($"'{exception.Message}'.");
+                        }
                     }
-                }
-                else
-                {
-                    _log.Trace($"{ex.GetType()}: '{ex.Message}'.");
+                    else
+                    {
+                        _log.Trace($"{ex.GetType()}: '{ex.Message}'.");
+                    }
                 }
 
                 return null;
             }
-
-            return result;
         }
 
         public Assembly FindAssemblyNamed(string name)
@@ -156,7 +154,8 @@ namespace Shuttle.Core.Reflection
         {
             Guard.AgainstNull(regex, nameof(regex));
 
-            var assemblies = new List<Assembly>(GetRuntimeAssemblies());
+            var assemblies =
+                new List<Assembly>(GetRuntimeAssemblies().Where(assembly => regex.IsMatch(assembly.FullName)));
 
             foreach (
                 var assembly in

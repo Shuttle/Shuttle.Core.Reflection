@@ -1,8 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <!--
+      NOTE: Do not target NETSTANDARD only as the type systems are just a little too different
+      - System.Runtime is a NETCOREAPP-only assembly and doesn't work with .NET framework.
+      - NETSTANDARD is included for class libraries that *do* only target NETSTANDARD
+    -->
+    <TargetFrameworks>netcoreapp2.1;net461;netstandard2.0;netstandard2.1</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
 
   <ItemGroup>
