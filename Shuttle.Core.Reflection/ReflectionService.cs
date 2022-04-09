@@ -241,7 +241,9 @@ namespace Shuttle.Core.Reflection
                     try
                     {
                         assembly = Assembly.LoadFrom(
-                            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{assemblyName.Name}.dll"));
+                            Path.Combine(string.IsNullOrEmpty(AppDomain.CurrentDomain.RelativeSearchPath) 
+                                ? AppDomain.CurrentDomain.BaseDirectory
+                                : AppDomain.CurrentDomain.RelativeSearchPath, $"{assemblyName.Name}.dll"));
                     }
                     catch (Exception ex)
                     {
