@@ -5,8 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Logging;
 #if NETCOREAPP
 using System.Runtime.Loader;
 #endif
@@ -21,11 +22,15 @@ namespace Shuttle.Core.Reflection
             ".exe"
         };
 
-        private readonly ILog _log;
+        private readonly ILogger<ReflectionService> _logger;
 
-        public ReflectionService()
+        public ReflectionService() : this(null)
         {
-            _log = Log.For(this);
+        }
+
+        public ReflectionService(ILogger<ReflectionService> logger)
+        {
+            _logger = logger ?? new NullLogger<ReflectionService>();
         }
 
         public string AssemblyPath(Assembly assembly)
@@ -68,20 +73,20 @@ namespace Shuttle.Core.Reflection
             }
             catch (Exception ex)
             {
-                _log.Warning(string.Format(Resources.AssemblyLoadException, assemblyPath, ex.Message));
+                _logger.LogWarning(string.Format(Resources.AssemblyLoadException, assemblyPath, ex.Message));
 
-                if (Log.IsTraceEnabled)
+                if (_logger.IsEnabled(LogLevel.Trace))
                 {
                     if (ex is ReflectionTypeLoadException reflection)
                     {
                         foreach (var exception in reflection.LoaderExceptions)
                         {
-                            _log.Trace($"'{exception.Message}'.");
+                            _logger.LogTrace($"'{exception.Message}'.");
                         }
                     }
                     else
                     {
-                        _log.Trace($"{ex.GetType()}: '{ex.Message}'.");
+                        _logger.LogTrace($"{ex.GetType()}: '{ex.Message}'.");
                     }
                 }
 
@@ -264,7 +269,7 @@ namespace Shuttle.Core.Reflection
 
             try
             {
-                _log.Trace(string.Format(Resources.TraceGetTypesFromAssembly, assembly));
+                _logger.LogTrace(string.Format(Resources.TraceGetTypesFromAssembly, assembly));
 
                 types = assembly.GetTypes();
             }
@@ -274,12 +279,12 @@ namespace Shuttle.Core.Reflection
                 {
                     foreach (var exception in reflection.LoaderExceptions)
                     {
-                        _log.Error($"'{exception.Message}'.");
+                        _logger.LogError($"'{exception.Message}'.");
                     }
                 }
                 else
                 {
-                    _log.Error($"{ex.GetType()}: '{ex.Message}'.");
+                    _logger.LogError($"{ex.GetType()}: '{ex.Message}'.");
                 }
 
                 return new List<Type>();
