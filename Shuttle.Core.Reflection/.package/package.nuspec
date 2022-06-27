@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Core.Reflection</id>
-		<version>11.0.3</version>
+		<version>12.0.0</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -16,7 +16,8 @@
 		<tags>shuttle reflection</tags>
 		<dependencies>
       <dependency id="Microsoft.Extensions.DependencyModel" version="6.0.0" />
-      <dependency id="Shuttle.Core.Logging" version="10.0.4" />
+      <dependency id="Microsoft.Extensions.Logging" version="6.0.0" />
+      <dependency id="Shuttle.Core.Contract" version="10.1.0" />
 		</dependencies>
 	</metadata>
 	<files>

@@ -5,12 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyModel;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Shuttle.Core.Contract;
-#if NETCOREAPP
-using System.Runtime.Loader;
-#endif
 
 namespace Shuttle.Core.Reflection
 {
@@ -22,16 +17,9 @@ namespace Shuttle.Core.Reflection
             ".exe"
         };
 
-        private readonly ILogger<ReflectionService> _logger;
-
-        public ReflectionService() : this(null)
+        public event EventHandler<ExceptionRaisedEventArgs> ExceptionRaised = delegate
         {
-        }
-
-        public ReflectionService(ILogger<ReflectionService> logger)
-        {
-            _logger = logger ?? new NullLogger<ReflectionService>();
-        }
+        };
 
         public string AssemblyPath(Assembly assembly)
         {
@@ -55,40 +43,11 @@ namespace Shuttle.Core.Reflection
 
             try
             {
-                var fileName = Path.GetFileNameWithoutExtension(assemblyPath);
-
-#if NETCOREAPP
-                var inCompileLibraries = DependencyContext.Default.CompileLibraries.Any(library => library.Name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
-                var inRuntimeLibraries = DependencyContext.Default.RuntimeLibraries.Any(library => library.Name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
-
-                var assembly = (inCompileLibraries || inRuntimeLibraries)
-                    ? Assembly.Load(new AssemblyName(fileName))
-                    : AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
-
-                return assembly;
-#else
-                return Assembly.Load(new AssemblyName(fileName));
-#endif
-
+                return Assembly.Load(new AssemblyName(Path.GetFileNameWithoutExtension(assemblyPath)));
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(string.Format(Resources.AssemblyLoadException, assemblyPath, ex.Message));
-
-                if (_logger.IsEnabled(LogLevel.Trace))
-                {
-                    if (ex is ReflectionTypeLoadException reflection)
-                    {
-                        foreach (var exception in reflection.LoaderExceptions)
-                        {
-                            _logger.LogTrace($"'{exception.Message}'.");
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogTrace($"{ex.GetType()}: '{ex.Message}'.");
-                    }
-                }
+                ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetAssembly({assemblyPath})",ex));
 
                 return null;
             }
@@ -265,27 +224,17 @@ namespace Shuttle.Core.Reflection
 
         public IEnumerable<Type> GetTypes(Assembly assembly)
         {
+            Guard.AgainstNull(assembly, nameof(assembly));
+
             Type[] types;
 
             try
             {
-                _logger.LogTrace(string.Format(Resources.TraceGetTypesFromAssembly, assembly));
-
                 types = assembly.GetTypes();
             }
             catch (Exception ex)
             {
-                if (ex is ReflectionTypeLoadException reflection)
-                {
-                    foreach (var exception in reflection.LoaderExceptions)
-                    {
-                        _logger.LogError($"'{exception.Message}'.");
-                    }
-                }
-                else
-                {
-                    _logger.LogError($"{ex.GetType()}: '{ex.Message}'.");
-                }
+                ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetTypes({assembly.FullName})", ex));
 
                 return new List<Type>();
             }
