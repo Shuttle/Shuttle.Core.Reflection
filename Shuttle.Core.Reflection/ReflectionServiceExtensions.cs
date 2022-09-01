@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Logging;
 
 namespace Shuttle.Core.Reflection
 {

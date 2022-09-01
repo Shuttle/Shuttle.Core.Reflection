@@ -7,6 +7,8 @@ namespace Shuttle.Core.Reflection
 {
     public interface IReflectionService
     {
+        event EventHandler<ExceptionRaisedEventArgs> ExceptionRaised;
+
         string AssemblyPath(Assembly assembly);
         Assembly GetAssembly(string assemblyPath);
         Assembly FindAssemblyNamed(string name);
