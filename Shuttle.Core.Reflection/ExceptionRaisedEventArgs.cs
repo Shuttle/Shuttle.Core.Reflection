@@ -10,11 +10,8 @@ namespace Shuttle.Core.Reflection
 
         public ExceptionRaisedEventArgs(string methodName, Exception exception)
         {
-            Guard.AgainstNullOrEmptyString(methodName, nameof(methodName));
-            Guard.AgainstNull(exception, nameof(exception));
-
-            MethodName = methodName;
-            Exception = exception;
+            MethodName = Guard.AgainstNullOrEmptyString(methodName, nameof(methodName));
+            Exception = Guard.AgainstNull(exception, nameof(exception));
         }
     }
 }
