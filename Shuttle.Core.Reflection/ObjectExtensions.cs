@@ -4,7 +4,7 @@ namespace Shuttle.Core.Reflection
 {
     public static class ObjectExtensions
     {
-        public static void AttemptDispose(this object o)
+        public static void TryDispose(this object o)
         {
             if (o is IDisposable disposable)
             {

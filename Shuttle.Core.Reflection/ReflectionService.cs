@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyModel;
 using Shuttle.Core.Contract;
 
@@ -30,11 +31,11 @@ namespace Shuttle.Core.Reflection
                 : string.Empty;
         }
 
-        public Assembly GetAssembly(string assemblyPath)
+        public async Task<Assembly> GetAssembly(string assemblyPath)
         {
-            var result = GetRuntimeAssemblies()
-                .FirstOrDefault(assembly => AssemblyPath(assembly)
-                    .Equals(assemblyPath, StringComparison.InvariantCultureIgnoreCase));
+            var assemblies = await GetRuntimeAssemblies().ConfigureAwait(false);
+
+            var result = assemblies.FirstOrDefault(assembly => AssemblyPath(assembly).Equals(assemblyPath, StringComparison.InvariantCultureIgnoreCase));
 
             if (result != null)
             {
@@ -47,13 +48,13 @@ namespace Shuttle.Core.Reflection
             }
             catch (Exception ex)
             {
-                ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetAssembly({assemblyPath})",ex));
+                ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetAssembly({assemblyPath})", ex));
 
                 return null;
             }
         }
 
-        public Assembly FindAssemblyNamed(string name)
+        public async Task<Assembly> FindAssemblyNamed(string name)
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
@@ -68,9 +69,10 @@ namespace Shuttle.Core.Reflection
                 hasFileExtension = true;
             }
 
-            var result = GetRuntimeAssemblies()
-                .FirstOrDefault(assembly => assembly.GetName()
-                    .Name.Equals(assemblyName, StringComparison.InvariantCultureIgnoreCase));
+            var assemblies = await GetRuntimeAssemblies().ConfigureAwait(false);
+
+            var result = assemblies.FirstOrDefault(assembly => assembly.GetName()
+                .Name.Equals(assemblyName, StringComparison.InvariantCultureIgnoreCase));
 
             if (result != null)
             {
@@ -97,7 +99,7 @@ namespace Shuttle.Core.Reflection
 
                 if (File.Exists(path))
                 {
-                    return GetAssembly(path);
+                    return await GetAssembly(path);
                 }
 
                 if (!privateBinPath.Equals(AppDomain.CurrentDomain.BaseDirectory))
@@ -106,7 +108,7 @@ namespace Shuttle.Core.Reflection
 
                     if (File.Exists(path))
                     {
-                        return GetAssembly(path);
+                        return await GetAssembly(path);
                     }
                 }
             }
@@ -114,19 +116,18 @@ namespace Shuttle.Core.Reflection
             return null;
         }
 
-        public IEnumerable<Assembly> GetMatchingAssemblies(Regex regex)
+        public async Task<IEnumerable<Assembly>> GetMatchingAssemblies(Regex regex)
         {
             Guard.AgainstNull(regex, nameof(regex));
 
-            var assemblies =
-                new List<Assembly>(GetRuntimeAssemblies().Where(assembly => regex.IsMatch(assembly.FullName)));
+            var result = (await GetRuntimeAssemblies().ConfigureAwait(false)).Where(assembly => regex.IsMatch(assembly.FullName)).ToList();
 
             foreach (
                 var assembly in
-                GetMatchingAssemblies(regex, AppDomain.CurrentDomain.BaseDirectory)
-                    .Where(assembly => assemblies.Find(candidate => candidate.Equals(assembly)) == null))
+                (await GetMatchingAssemblies(regex, AppDomain.CurrentDomain.BaseDirectory).ConfigureAwait(false))
+                .Where(assembly => result.Find(candidate => candidate.Equals(assembly)) == null))
             {
-                assemblies.Add(assembly);
+                result.Add(assembly);
             }
 
             var privateBinPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -136,17 +137,17 @@ namespace Shuttle.Core.Reflection
             {
                 foreach (
                     var assembly in
-                    GetMatchingAssemblies(regex, privateBinPath)
-                        .Where(assembly => assemblies.Find(candidate => candidate.Equals(assembly)) == null))
+                    (await GetMatchingAssemblies(regex, privateBinPath).ConfigureAwait(false))
+                    .Where(assembly => result.Find(candidate => candidate.Equals(assembly)) == null))
                 {
-                    assemblies.Add(assembly);
+                    result.Add(assembly);
                 }
             }
 
-            return assemblies;
+            return result;
         }
 
-        public IEnumerable<Assembly> GetRuntimeAssemblies()
+        public async Task<IEnumerable<Assembly>> GetRuntimeAssemblies()
         {
             var result = new List<Assembly>();
             var dependencyContext = DependencyContext.Default;
@@ -154,7 +155,7 @@ namespace Shuttle.Core.Reflection
             if (dependencyContext != null)
             {
                 foreach (var runtimeAssemblyName in dependencyContext.GetRuntimeAssemblyNames(Environment.OSVersion
-                    .Platform.ToString()))
+                             .Platform.ToString()))
                 {
                     result.Add(Assembly.Load(runtimeAssemblyName));
                 }
@@ -168,17 +169,20 @@ namespace Shuttle.Core.Reflection
                 }
             }
 
-            return result;
+            return await Task.FromResult(result);
         }
 
-        public IEnumerable<Type> GetTypesAssignableTo(Type type)
+        public async Task<IEnumerable<Type>> GetTypesAssignableTo(Type type)
         {
             var result = new List<Type>();
 
-            foreach (var assembly in this.GetAssemblies())
+            var assemblies = await this.GetAssemblies().ConfigureAwait(false);
+
+            foreach (var assembly in assemblies)
             {
-                GetTypesAssignableTo(type, assembly)
-                    .Where(candidate => result.Find(existing => existing == candidate) == null)
+                var types = await GetTypesAssignableTo(type, assembly).ConfigureAwait(false);
+
+                types.Where(candidate => result.Find(existing => existing == candidate) == null)
                     .ToList()
                     .ForEach(add => result.Add(add));
             }
@@ -186,18 +190,20 @@ namespace Shuttle.Core.Reflection
             return result;
         }
 
-        public IEnumerable<Type> GetTypesAssignableTo(Type type, Assembly assembly)
+        public async Task<IEnumerable<Type>> GetTypesAssignableTo(Type type, Assembly assembly)
         {
             Guard.AgainstNull(type, nameof(type));
             Guard.AgainstNull(assembly, nameof(assembly));
 
-            return GetTypes(assembly).Where(candidate =>
+            var types = await GetTypes(assembly).ConfigureAwait(false);
+
+            return types.Where(candidate =>
                 candidate.IsAssignableTo(type) && !(candidate.IsInterface && candidate == type)).ToList();
         }
 
-        public Type GetType(string typeName)
+        public async Task<Type> GetType(string typeName)
         {
-            return Type.GetType(typeName,
+            return await Task.FromResult(Type.GetType(typeName,
                 assemblyName =>
                 {
                     Assembly assembly;
@@ -205,7 +211,7 @@ namespace Shuttle.Core.Reflection
                     try
                     {
                         assembly = Assembly.LoadFrom(
-                            Path.Combine(string.IsNullOrEmpty(AppDomain.CurrentDomain.RelativeSearchPath) 
+                            Path.Combine(string.IsNullOrEmpty(AppDomain.CurrentDomain.RelativeSearchPath)
                                 ? AppDomain.CurrentDomain.BaseDirectory
                                 : AppDomain.CurrentDomain.RelativeSearchPath, $"{assemblyName.Name}.dll"));
                     }
@@ -219,45 +225,43 @@ namespace Shuttle.Core.Reflection
                 },
                 (assembly, typeNameSought, ignore) => assembly == null
                     ? Type.GetType(typeNameSought, false, ignore)
-                    : assembly.GetType(typeNameSought, false, ignore));
+                    : assembly.GetType(typeNameSought, false, ignore)));
         }
 
-        public IEnumerable<Type> GetTypes(Assembly assembly)
+        public async Task<IEnumerable<Type>> GetTypes(Assembly assembly)
         {
             Guard.AgainstNull(assembly, nameof(assembly));
 
-            Type[] types;
+            var types = Enumerable.Empty<Type>();
 
             try
             {
-                types = assembly.GetTypes();
+                types = assembly.GetTypes().ToList();
             }
             catch (Exception ex)
             {
                 ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetTypes({assembly.FullName})", ex));
-
-                return new List<Type>();
             }
 
-            return types;
+            return await Task.FromResult(types);
         }
 
-        private IEnumerable<Assembly> GetMatchingAssemblies(Regex expression, string folder)
+        private async Task<IEnumerable<Assembly>> GetMatchingAssemblies(Regex expression, string folder)
         {
             var result = new List<Assembly>();
 
             if (Directory.Exists(folder))
             {
-                result.AddRange(
+                result.AddRange(await Task.WhenAll(
                     Directory.GetFiles(folder, "*.exe")
                         .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
                         .Select(GetAssembly)
-                        .Where(assembly => assembly != null));
-                result.AddRange(
+                        .Where(assembly => assembly != null)));
+                result.AddRange(await Task.WhenAll(
                     Directory.GetFiles(folder, "*.dll")
                         .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
-                        .Select(GetAssembly)
-                        .Where(assembly => assembly != null));
+                        .Select(assemblyPath => GetAssembly(assemblyPath))
+                        .Where(assembly => assembly != null)));
             }
 
             return result;
