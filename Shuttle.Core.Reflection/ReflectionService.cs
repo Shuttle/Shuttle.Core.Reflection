@@ -18,9 +18,7 @@ namespace Shuttle.Core.Reflection
             ".exe"
         };
 
-        public event EventHandler<ExceptionRaisedEventArgs> ExceptionRaised = delegate
-        {
-        };
+        public event EventHandler<ExceptionRaisedEventArgs> ExceptionRaised;
 
         public string AssemblyPath(Assembly assembly)
         {
@@ -48,7 +46,7 @@ namespace Shuttle.Core.Reflection
             }
             catch (Exception ex)
             {
-                ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetAssembly({assemblyPath})", ex));
+                ExceptionRaised?.Invoke(this, new ExceptionRaisedEventArgs($"GetAssembly({assemblyPath})", ex));
 
                 return null;
             }
@@ -71,7 +69,7 @@ namespace Shuttle.Core.Reflection
             }
             catch (Exception ex)
             {
-                ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetAssembly({assemblyPath})", ex));
+                ExceptionRaised?.Invoke(this, new ExceptionRaisedEventArgs($"GetAssembly({assemblyPath})", ex));
 
                 return null;
             }
@@ -378,7 +376,7 @@ namespace Shuttle.Core.Reflection
             }
             catch (Exception ex)
             {
-                ExceptionRaised.Invoke(this, new ExceptionRaisedEventArgs($"GetTypes({assembly.FullName})", ex));
+                ExceptionRaised?.Invoke(this, new ExceptionRaisedEventArgs($"GetTypes({assembly.FullName})", ex));
 
                 return new List<Type>();
             }
@@ -458,7 +456,7 @@ namespace Shuttle.Core.Reflection
                 result.AddRange(await Task.WhenAll(
                     Directory.GetFiles(folder, "*.dll")
                         .Where(file => expression.IsMatch(Path.GetFileNameWithoutExtension(file)))
-                        .Select(assemblyPath => GetAssemblyAsync(assemblyPath))
+                        .Select(async assemblyPath => await GetAssemblyAsync(assemblyPath).ConfigureAwait(false))
                         .Where(assembly => assembly != null)));
             }
 
