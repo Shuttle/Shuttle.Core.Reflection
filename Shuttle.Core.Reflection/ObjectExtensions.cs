@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace Shuttle.Core.Reflection
 {
@@ -9,6 +10,18 @@ namespace Shuttle.Core.Reflection
             if (o is IDisposable disposable)
             {
                 disposable.Dispose();
+            }
+        }
+
+        public static async Task TryDisposeAsync(this object o)
+        {
+            if (o is IAsyncDisposable disposable)
+            {
+                await disposable.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                o.TryDispose();
             }
         }
     }
