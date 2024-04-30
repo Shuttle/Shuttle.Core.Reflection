@@ -1,12 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!--
-      NOTE: Do not target NETSTANDARD only as the type systems are just a little too different
-      - System.Runtime is a NETCOREAPP-only assembly and doesn't work with .NET framework.
-      - NETSTANDARD is included for class libraries that *do* only target NETSTANDARD
-    -->
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
@@ -22,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="7.0.0" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="11.0.0" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="11.1.0" />
   </ItemGroup>
 
   <ItemGroup>
