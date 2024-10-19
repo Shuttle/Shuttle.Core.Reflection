@@ -9,24 +9,6 @@ Provides various methods to facilitate reflection handling.
 ## ReflectionService
 
 ``` c#
-string AssemblyPath(Assembly assembly)
-```
-
-Returns the path to the given assembly.
-
-``` c#
-Task<Assembly> FindAssemblyNamedAsync(string name)
-```
-
-Returns the `Assembly` that has the requested `name`; else `null`.
-
-``` c#
-Task<Assembly> GetAssemblyAsync(string assemblyPath)
-```
-
-Returns the requested assembly if found; else `null`.
-
-``` c#
 Task<IEnumerable<Assembly>> GetMatchingAssembliesAsync(Regex regex)
 ```
 
@@ -43,12 +25,6 @@ Task<Type> GetTypeAsync(string typeName)
 ```
 
 Attempts to find the requested type.
-
-``` c#
-Task<IEnumerable<Type>> GetTypesAsync(Assembly assembly)
-```
-
-Returns all types in the given `assembly`.
 
 ``` c#
 Task<IEnumerable<Type>> GetTypesAssignableToAsync(Type type, Assembly assembly)

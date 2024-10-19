@@ -4,128 +4,122 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Core.Reflection
+namespace Shuttle.Core.Reflection;
+
+public static class TypeExtensions
 {
-    public static class TypeExtensions
+    public static void AssertDefaultConstructor(this Type type)
     {
-        public static bool HasInterfaces(this Type type)
+        Guard.AgainstNull(type);
+
+        AssertDefaultConstructor(type, $"Type '{type.FullName}' does not have a default constructor.");
+    }
+
+    public static void AssertDefaultConstructor(this Type type, string message)
+    {
+        if (!type.HasDefaultConstructor())
         {
-            return type.GetInterfaces().Any();
+            throw new NotSupportedException(message);
         }
+    }
 
-        public static Type InterfaceMatching(this Type type, string includeRegexPattern)
+    public static Type? FirstInterface(this Type type, Type of)
+    {
+        var interfaces = type.GetInterfaces();
+        var name = $"I{type.Name}";
+
+        foreach (var i in interfaces)
         {
-            return type.InterfaceMatching(includeRegexPattern, string.Empty);
-        }
-
-        public static Type InterfaceMatching(this Type type, string includeRegexPattern, string excludeRegexPattern)
-        {
-            var includeRegex = new Regex(includeRegexPattern, RegexOptions.IgnoreCase);
-            Regex excludeRegex = null;
-
-            if (!string.IsNullOrEmpty(excludeRegexPattern))
+            if (i.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
             {
-                excludeRegex = new Regex(excludeRegexPattern, RegexOptions.IgnoreCase);
-            }
-
-            return (from i in type.GetInterfaces()
-                let fullName = i.FullName
-                where includeRegex.IsMatch(fullName) && (excludeRegex == null || !excludeRegex.IsMatch(fullName))
-                select i).FirstOrDefault();
-        }
-
-        public static IEnumerable<Type> FirstInterface(this Type type, Type of)
-        {
-            var interfaces = type.GetInterfaces();
-            var name = $"I{type.Name}";
-
-            foreach (var i in interfaces)
-            {
-                if (i.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return new[] {i};
-                }
-            }
-
-            return (from i in interfaces
-                where i.IsAssignableTo(of)
-                select new[] {i}).FirstOrDefault();
-        }
-
-        /// <summary>
-        ///     Returns a IEnumerable&lt;Type&gt; containing the interface that has the same name as the type prefixed by an 'I';
-        ///     else null.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <example>If the type name is Exmaple it will try to locate interface IExample.</example>
-        /// <returns></returns>
-        public static Type MatchingInterface(this Type type)
-        {
-            var name = $"I{type.Name}";
-
-            return type.GetInterfaces()
-                .Where(i => i.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
-                .Select(i => i)
-                .FirstOrDefault();
-        }
-
-        public static IEnumerable<Type> InterfacesAssignableTo<T>(this Type type)
-        {
-            return type.InterfacesAssignableTo(typeof(T));
-        }
-
-        public static IEnumerable<Type> InterfacesAssignableTo(this Type type, Type interfaceType)
-        {
-            Guard.AgainstNull(interfaceType, nameof(interfaceType));
-
-            return type.GetInterfaces().Where(i => i.IsAssignableTo(interfaceType)).ToList();
-        }
-
-        public static void AssertDefaultConstructor(this Type type)
-        {
-            Guard.AgainstNull(type, nameof(type));
-
-            AssertDefaultConstructor(type,
-                $"Type '{type.FullName}' does not have a default constructor.");
-        }
-
-        public static void AssertDefaultConstructor(this Type type, string message)
-        {
-            if (!type.HasDefaultConstructor())
-            {
-                throw new NotSupportedException(message);
+                return i;
             }
         }
 
-        public static bool HasDefaultConstructor(this Type type)
+        return interfaces.FirstOrDefault(item => item.IsAssignableTo(of));
+    }
+
+    public static Type? GetGenericArgument(this Type type, Type generic)
+    {
+        return type.GetInterfaces()
+            .Where(item => item.IsGenericType && item.GetGenericTypeDefinition().IsAssignableFrom(generic))
+            .Select(item => item.GetGenericArguments()[0]).FirstOrDefault();
+    }
+
+    public static bool HasDefaultConstructor(this Type type)
+    {
+        return type.GetConstructor(Type.EmptyTypes) != null;
+    }
+
+    public static Type? InterfaceMatching(this Type type, string includeRegexPattern, string? excludeRegexPattern = null)
+    {
+        var includeRegex = new Regex(includeRegexPattern, RegexOptions.IgnoreCase);
+        
+        Regex? excludeRegex = null;
+
+        if (!string.IsNullOrEmpty(excludeRegexPattern))
         {
-            return type.GetConstructor(Type.EmptyTypes) != null;
+            excludeRegex = new(excludeRegexPattern, RegexOptions.IgnoreCase);
         }
 
-        public static bool IsAssignableTo(this Type type, Type otherType)
+        foreach (var i in type.GetInterfaces())
         {
-            Guard.AgainstNull(type, nameof(type));
-            Guard.AgainstNull(otherType, nameof(otherType));
+            var fullName = i.FullName ?? string.Empty;
 
-            return type.IsGenericType && otherType.IsGenericType
-                ? otherType.GetGenericTypeDefinition().IsAssignableFrom(type.GetGenericTypeDefinition())
-                : (otherType.IsGenericType
-                    ? IsAssignableToGenericType(type, otherType)
-                    : otherType.IsAssignableFrom(type));
+            if (includeRegex.IsMatch(fullName) && (excludeRegex == null || !excludeRegex.IsMatch(fullName)))
+            {
+                return i;
+            }
         }
 
-        private static bool IsAssignableToGenericType(Type type, Type generic)
-        {
-            return
-                type.GetInterfaces()
-                    .Any(i => i.IsGenericType && i.GetGenericTypeDefinition().IsAssignableFrom(generic));
-        }
+        return null;
+    }
 
-        public static Type GetGenericArguments(this Type type, Type generic)
-        {
-            return (from i in type.GetInterfaces()
-                where i.IsGenericType && i.GetGenericTypeDefinition().IsAssignableFrom(generic)
-                select i.GetGenericArguments()[0]).FirstOrDefault();
-        }
+    public static IEnumerable<Type> InterfacesAssignableTo<T>(this Type type)
+    {
+        return type.InterfacesAssignableTo(typeof(T));
+    }
+
+    public static IEnumerable<Type> InterfacesAssignableTo(this Type type, Type interfaceType)
+    {
+        Guard.AgainstNull(interfaceType);
+
+        return type.GetInterfaces().Where(i => i.IsAssignableTo(interfaceType)).ToList();
+    }
+
+    public static bool IsAssignableTo(this Type type, Type otherType)
+    {
+        Guard.AgainstNull(type);
+        Guard.AgainstNull(otherType);
+
+        return type.IsGenericType && otherType.IsGenericType
+            ? otherType.GetGenericTypeDefinition().IsAssignableFrom(type.GetGenericTypeDefinition())
+            : otherType.IsGenericType
+                ? IsAssignableToGenericType(type, otherType)
+                : otherType.IsAssignableFrom(type);
+    }
+
+    private static bool IsAssignableToGenericType(Type type, Type generic)
+    {
+        return
+            type.GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition().IsAssignableFrom(generic));
+    }
+
+    /// <summary>
+    ///     Returns a IEnumerable&lt;Type&gt; containing the interface that has the same name as the type prefixed by an 'I';
+    ///     else null.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <example>If the type name is Example it will try to locate interface IExample.</example>
+    /// <returns></returns>
+    public static Type? MatchingInterface(this Type type)
+    {
+        var name = $"I{type.Name}";
+
+        return type.GetInterfaces()
+            .Where(i => i.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
+            .Select(i => i)
+            .FirstOrDefault();
     }
 }

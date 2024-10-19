@@ -1,28 +1,27 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Shuttle.Core.Reflection
-{
-    public static class ObjectExtensions
-    {
-        public static void TryDispose(this object o)
-        {
-            if (o is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-        }
+namespace Shuttle.Core.Reflection;
 
-        public static async Task TryDisposeAsync(this object o)
+public static class ObjectExtensions
+{
+    public static void TryDispose(this object o)
+    {
+        if (o is IDisposable disposable)
         {
-            if (o is IAsyncDisposable disposable)
-            {
-                await disposable.DisposeAsync().ConfigureAwait(false);
-            }
-            else
-            {
-                o.TryDispose();
-            }
+            disposable.Dispose();
+        }
+    }
+
+    public static async Task TryDisposeAsync(this object o)
+    {
+        if (o is IAsyncDisposable disposable)
+        {
+            await disposable.DisposeAsync().ConfigureAwait(false);
+        }
+        else
+        {
+            o.TryDispose();
         }
     }
 }

@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Core.Reflection</id>
-		<version>13.0.0</version>
+		<version>20.0.0</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -16,8 +16,8 @@
 		<copyright>Copyright (c) 2024, Eben Roux</copyright>
 		<tags>shuttle reflection</tags>
 		<dependencies>
-      <dependency id="Microsoft.Extensions.DependencyModel" version="7.0.0" />
-      <dependency id="Shuttle.Core.Contract" version="11.1.0" />
+      <dependency id="Microsoft.Extensions.DependencyModel" version="8.0.2" />
+      <dependency id="Shuttle.Core.Contract" version="20.0.0" />
 		</dependencies>
 	</metadata>
 	<files>
