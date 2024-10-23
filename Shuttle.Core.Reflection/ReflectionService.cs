@@ -65,7 +65,7 @@ public class ReflectionService : IReflectionService
     {
         Guard.AgainstNull(type);
 
-        return await Task.FromResult(Guard.AgainstNull(assembly).GetTypes().Where(item => item.IsAssignableTo(type) && !(item.IsInterface && item == type)).ToList());
+        return await Task.FromResult(Guard.AgainstNull(assembly).GetTypes().Where(item => TypeExtensions.IsAssignableTo(item, type) && !(item.IsInterface && item == type)).ToList());
     }
 
     public async Task<Type?> GetTypeAsync(string typeName)

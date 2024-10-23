@@ -36,7 +36,7 @@ public static class TypeExtensions
             }
         }
 
-        return interfaces.FirstOrDefault(item => item.IsAssignableTo(of));
+        return interfaces.FirstOrDefault(item => IsAssignableTo(item, of));
     }
 
     public static Type? GetGenericArgument(this Type type, Type generic)
@@ -84,7 +84,7 @@ public static class TypeExtensions
     {
         Guard.AgainstNull(interfaceType);
 
-        return type.GetInterfaces().Where(i => i.IsAssignableTo(interfaceType)).ToList();
+        return type.GetInterfaces().Where(i => IsAssignableTo(i, interfaceType)).ToList();
     }
 
     public static bool IsAssignableTo(this Type type, Type otherType)
