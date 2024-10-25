@@ -36,7 +36,7 @@ public static class TypeExtensions
             }
         }
 
-        return interfaces.FirstOrDefault(item => IsAssignableTo(item, of));
+        return interfaces.FirstOrDefault(item => IsAssignableToExpanded(item, of));
     }
 
     public static Type? GetGenericArgument(this Type type, Type generic)
@@ -75,19 +75,19 @@ public static class TypeExtensions
         return null;
     }
 
-    public static IEnumerable<Type> InterfacesAssignableTo<T>(this Type type)
+    public static IEnumerable<Type> InterfacesAssignableToExpanded<T>(this Type type)
     {
-        return type.InterfacesAssignableTo(typeof(T));
+        return type.InterfacesAssignableToExpanded(typeof(T));
     }
 
-    public static IEnumerable<Type> InterfacesAssignableTo(this Type type, Type interfaceType)
+    public static IEnumerable<Type> InterfacesAssignableToExpanded(this Type type, Type interfaceType)
     {
         Guard.AgainstNull(interfaceType);
 
-        return type.GetInterfaces().Where(i => IsAssignableTo(i, interfaceType)).ToList();
+        return type.GetInterfaces().Where(i => IsAssignableToExpanded(i, interfaceType)).ToList();
     }
 
-    public static bool IsAssignableTo(this Type type, Type otherType)
+    public static bool IsAssignableToExpanded(this Type type, Type otherType)
     {
         Guard.AgainstNull(type);
         Guard.AgainstNull(otherType);

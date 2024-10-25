@@ -20,13 +20,13 @@ public static class ReflectionServiceExtensions
         return await Guard.AgainstNull(service).GetMatchingAssembliesAsync(new(Guard.AgainstNullOrEmptyString(regex))).ConfigureAwait(false);
     }
 
-    public static async Task<IEnumerable<Type>> GetTypesAssignableToAsync<T>(this IReflectionService service)
+    public static async Task<IEnumerable<Type>> GetTypesAssignableToExpandedAsync<T>(this IReflectionService service)
     {
-        return await Guard.AgainstNull(service).GetTypesAssignableToAsync(typeof(T)).ConfigureAwait(false);
+        return await Guard.AgainstNull(service).GetTypesAssignableToExpandedAsync(typeof(T)).ConfigureAwait(false);
     }
 
-    public static async Task<IEnumerable<Type>> GetTypesAssignableToAsync<T>(this IReflectionService service, Assembly assembly)
+    public static async Task<IEnumerable<Type>> GetTypesAssignableToExpandedAsync<T>(this IReflectionService service, Assembly assembly)
     {
-        return await Guard.AgainstNull(service).GetTypesAssignableToAsync(typeof(T), assembly).ConfigureAwait(false);
+        return await Guard.AgainstNull(service).GetTypesAssignableToExpandedAsync(typeof(T), assembly).ConfigureAwait(false);
     }
 }
