@@ -36,7 +36,7 @@ public static class TypeExtensions
             }
         }
 
-        return interfaces.FirstOrDefault(item => IsAssignableToExpanded(item, of));
+        return interfaces.FirstOrDefault(item => IsCastableTo(item, of));
     }
 
     public static Type? GetGenericArgument(this Type type, Type generic)
@@ -75,19 +75,19 @@ public static class TypeExtensions
         return null;
     }
 
-    public static IEnumerable<Type> InterfacesAssignableToExpanded<T>(this Type type)
+    public static IEnumerable<Type> InterfacesCastableTo<T>(this Type type)
     {
-        return type.InterfacesAssignableToExpanded(typeof(T));
+        return type.InterfacesCastableTo(typeof(T));
     }
 
-    public static IEnumerable<Type> InterfacesAssignableToExpanded(this Type type, Type interfaceType)
+    public static IEnumerable<Type> InterfacesCastableTo(this Type type, Type interfaceType)
     {
         Guard.AgainstNull(interfaceType);
 
-        return type.GetInterfaces().Where(i => IsAssignableToExpanded(i, interfaceType)).ToList();
+        return type.GetInterfaces().Where(i => IsCastableTo(i, interfaceType)).ToList();
     }
 
-    public static bool IsAssignableToExpanded(this Type type, Type otherType)
+    public static bool IsCastableTo(this Type type, Type otherType)
     {
         Guard.AgainstNull(type);
         Guard.AgainstNull(otherType);
@@ -95,11 +95,11 @@ public static class TypeExtensions
         return type.IsGenericType && otherType.IsGenericType
             ? otherType.GetGenericTypeDefinition().IsAssignableFrom(type.GetGenericTypeDefinition())
             : otherType.IsGenericType
-                ? IsAssignableToGenericType(type, otherType)
+                ? IsCastableToGenericType(type, otherType)
                 : otherType.IsAssignableFrom(type);
     }
 
-    private static bool IsAssignableToGenericType(Type type, Type generic)
+    private static bool IsCastableToGenericType(Type type, Type generic)
     {
         return
             type.GetInterfaces()

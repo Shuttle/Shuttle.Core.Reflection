@@ -27,11 +27,11 @@ Task<Type> GetTypeAsync(string typeName)
 Attempts to find the requested type.
 
 ``` c#
-Task<IEnumerable<Type>> GetTypesAssignableToAsync(Type type, Assembly assembly)
+Task<IEnumerable<Type>> GetTypesCastableToAsync(Type type, Assembly assembly)
 // and these extensions
-Task<IEnumerable<Type>> GetTypesAssignableToAsync<T>();
-Task<IEnumerable<Type>> GetTypesAssignableToAsync(Type type);
-Task<IEnumerable<Type>> GetTypesAssignableToAsync<T>(Assembly assembly);
+Task<IEnumerable<Type>> GetTypesCastableToAsync<T>();
+Task<IEnumerable<Type>> GetTypesCastableToAsync(Type type);
+Task<IEnumerable<Type>> GetTypesCastableToAsync<T>(Assembly assembly);
 ```
 
 Returns all the types in the given `assembly` that are assignable to the `type` or `typeof(T)`; if no `assembly` is provided the all assemblies returned by `GetAssemblies()` will be scanned.

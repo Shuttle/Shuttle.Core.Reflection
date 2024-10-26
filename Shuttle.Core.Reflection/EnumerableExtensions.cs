@@ -25,7 +25,7 @@ public static class EnumerableExtensions
     {
         var type = typeof(T);
 
-        return Guard.AgainstNull(list).Where(o => o.GetType().IsAssignableToExpanded(type)).Select(o => (T)o).ToList();
+        return Guard.AgainstNull(list).Where(o => o.GetType().IsCastableTo(type)).Select(o => (T)o).ToList();
     }
 
     public static T Get<T>(this IEnumerable<object> list) where T : class

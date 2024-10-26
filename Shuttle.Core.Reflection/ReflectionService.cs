@@ -43,7 +43,7 @@ public class ReflectionService : IReflectionService
         return await Task.FromResult(result);
     }
 
-    public async Task<IEnumerable<Type>> GetTypesAssignableToExpandedAsync(Type type)
+    public async Task<IEnumerable<Type>> GetTypesCastableToAsync(Type type)
     {
         var result = new List<Type>();
 
@@ -51,7 +51,7 @@ public class ReflectionService : IReflectionService
 
         foreach (var assembly in assemblies)
         {
-            var types = await GetTypesAssignableToExpandedAsync(type, assembly).ConfigureAwait(false);
+            var types = await GetTypesCastableToAsync(type, assembly).ConfigureAwait(false);
 
             types.Where(candidate => result.Find(existing => existing == candidate) == null)
                 .ToList()
@@ -61,11 +61,11 @@ public class ReflectionService : IReflectionService
         return result;
     }
 
-    public async Task<IEnumerable<Type>> GetTypesAssignableToExpandedAsync(Type type, Assembly assembly)
+    public async Task<IEnumerable<Type>> GetTypesCastableToAsync(Type type, Assembly assembly)
     {
         Guard.AgainstNull(type);
 
-        return await Task.FromResult(Guard.AgainstNull(assembly).GetTypes().Where(item => item.IsAssignableToExpanded(type) && !(item.IsInterface && item == type)).ToList());
+        return await Task.FromResult(Guard.AgainstNull(assembly).GetTypes().Where(item => item.IsCastableTo(type) && !(item.IsInterface && item == type)).ToList());
     }
 
     public async Task<Type?> GetTypeAsync(string typeName)

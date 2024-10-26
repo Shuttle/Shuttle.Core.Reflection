@@ -16,8 +16,8 @@ public class ReflectionServiceFixture
     [Test]
     public async Task Should_be_able_to_get_types_async()
     {
-        Assert.That((await new ReflectionService().GetTypesAssignableToExpandedAsync<SomeClass>()).Count(), Is.EqualTo(1));
-        Assert.That((await new ReflectionService().GetTypesAssignableToExpandedAsync<ISomeClass>()).Count(), Is.EqualTo(1));
+        Assert.That((await new ReflectionService().GetTypesCastableToAsync<SomeClass>()).Count(), Is.EqualTo(1));
+        Assert.That((await new ReflectionService().GetTypesCastableToAsync<ISomeClass>()).Count(), Is.EqualTo(1));
     }
 
     public async Task Should_be_able_to_get_matching_assemblies_async()
