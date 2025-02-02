@@ -9,24 +9,6 @@ Provides various methods to facilitate reflection handling.
 ## ReflectionService
 
 ``` c#
-string AssemblyPath(Assembly assembly)
-```
-
-Returns the path to the given assembly.
-
-``` c#
-Task<Assembly> FindAssemblyNamedAsync(string name)
-```
-
-Returns the `Assembly` that has the requested `name`; else `null`.
-
-``` c#
-Task<Assembly> GetAssemblyAsync(string assemblyPath)
-```
-
-Returns the requested assembly if found; else `null`.
-
-``` c#
 Task<IEnumerable<Assembly>> GetMatchingAssembliesAsync(Regex regex)
 ```
 
@@ -36,7 +18,7 @@ Returns a collection of assemblies that have their file name matching the given 
 Task<IEnumerable<Assembly>> GetRuntimeAssembliesAsync()
 ```
 
-For .Net 4.6+ (which isn't support in the latest version) returns `AppDomain.CurrentDomain.GetAssemblies();`.  For .Net Core 2.0+ all the `DependencyContext.Default.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier())` assembly names are resolved.
+Returns a combination of `DependencyContext.Default.GetRuntimeAssemblyNames(Environment.OSVersion.Platform.ToString())` and `AppDomain.CurrentDomain.GetAssemblies()`.
 
 ``` c#
 Task<Type> GetTypeAsync(string typeName)
@@ -45,18 +27,12 @@ Task<Type> GetTypeAsync(string typeName)
 Attempts to find the requested type.
 
 ``` c#
-Task<IEnumerable<Type>> GetTypesAsync(Assembly assembly)
-```
-
-Returns all types in the given `assembly`.
-
-``` c#
-Task<IEnumerable<Type>> GetTypesAssignableToAsync(Type type, Assembly assembly)
+Task<IEnumerable<Type>> GetTypesCastableToAsync(Type type, Assembly assembly)
 // and these extensions
-Task<IEnumerable<Type>> GetTypesAssignableToAsync<T>();
-Task<IEnumerable<Type>> GetTypesAssignableToAsync(Type type);
-Task<IEnumerable<Type>> GetTypesAssignableToAsync<T>(Assembly assembly);
+Task<IEnumerable<Type>> GetTypesCastableToAsync<T>();
+Task<IEnumerable<Type>> GetTypesCastableToAsync(Type type);
+Task<IEnumerable<Type>> GetTypesCastableToAsync<T>(Assembly assembly);
 ```
 
-Returns all the types in the given `assembly` that are assignable to the `type` or `typeof(T)`; if no `assembly` is provided the all assemblies returned by `GetAssemblies()` will be scanned.
+Returns all the types in the given `assembly` that can be cast to the `type` or `typeof(T)`; if no `assembly` is provided the all assemblies returned by `GetAssembliesAsync()` will be scanned.
 

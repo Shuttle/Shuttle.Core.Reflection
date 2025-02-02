@@ -119,22 +119,26 @@
   </resheader>
   <data name="AssemblyLoadException" xml:space="preserve">
     <value>[GetAssembly] : could not load assembly '{0}' / exception = {1}</value>
-    <comment>{0} = assembly, {1} = exception</comment>
+    <comment>0 = assembly, {1} = exception</comment>
   </data>
   <data name="EnemerableNoMatchException" xml:space="preserve">
     <value>Enumerable contained no elements matching type '{0}'.</value>
-    <comment>{0} = type sought</comment>
+    <comment>0 = type sought</comment>
   </data>
   <data name="EnumerableFoundTooManyException" xml:space="preserve">
     <value>Enumerable contains {0} elements matching type '{1}'.</value>
-    <comment>{0} = count found, {1} = type sought</comment>
+    <comment>0 = count found, {1} = type sought</comment>
   </data>
   <data name="GetFileNameWithoutExtensionException" xml:space="preserve">
     <value>Returned null from call to 'GetFileNameWithoutExtension' for value '{0}'.</value>
-    <comment>{0} = path</comment>
+    <comment>0 = path</comment>
   </data>
   <data name="TraceGetTypesFromAssembly" xml:space="preserve">
     <value>Retrieving all types from from assembly '{0}'.</value>
-    <comment>{0} = assembly</comment>
+    <comment>0 = assembly</comment>
+  </data>
+  <data name="TypeFullNameNullException" xml:space="preserve">
+    <value>Type with full name '{0}' is null.</value>
+    <comment>0 = type full name</comment>
   </data>
 </root>

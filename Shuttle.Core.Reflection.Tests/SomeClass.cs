@@ -1,11 +1,9 @@
-﻿namespace Shuttle.Core.Reflection.Tests
-{
-    public class SomeClass : ISomeClass
-    {
-        
-    }
+﻿namespace Shuttle.Core.Reflection.Tests;
 
-    public interface ISomeClass
-    {
-    }
+public class SomeClass : ISomeClass
+{
+}
+
+public interface ISomeClass
+{
 }
