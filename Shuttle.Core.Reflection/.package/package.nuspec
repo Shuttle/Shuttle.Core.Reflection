@@ -13,7 +13,7 @@
 		<repository type="git" url="https://github.com/shuttle/Shuttle.Core.Reflection.git" />
 		<projectUrl>https://github.com/shuttle/Shuttle.Core.Reflection</projectUrl>
 		<description>Reflection infrastructure components.</description>
-		<copyright>Copyright (c) 2024, Eben Roux</copyright>
+		<copyright>Copyright (c) 2025, Eben Roux</copyright>
 		<tags>shuttle reflection</tags>
 		<dependencies>
       <dependency id="Microsoft.Extensions.DependencyModel" version="8.0.2" />

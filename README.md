@@ -18,7 +18,7 @@ Returns a collection of assemblies that have their file name matching the given 
 Task<IEnumerable<Assembly>> GetRuntimeAssembliesAsync()
 ```
 
-For .Net 4.6+ (which isn't support in the latest version) returns `AppDomain.CurrentDomain.GetAssemblies();`.  For .Net Core 2.0+ all the `DependencyContext.Default.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier())` assembly names are resolved.
+Returns a combination of `DependencyContext.Default.GetRuntimeAssemblyNames(Environment.OSVersion.Platform.ToString())` and `AppDomain.CurrentDomain.GetAssemblies()`.
 
 ``` c#
 Task<Type> GetTypeAsync(string typeName)
@@ -34,5 +34,5 @@ Task<IEnumerable<Type>> GetTypesCastableToAsync(Type type);
 Task<IEnumerable<Type>> GetTypesCastableToAsync<T>(Assembly assembly);
 ```
 
-Returns all the types in the given `assembly` that are assignable to the `type` or `typeof(T)`; if no `assembly` is provided the all assemblies returned by `GetAssemblies()` will be scanned.
+Returns all the types in the given `assembly` that can be cast to the `type` or `typeof(T)`; if no `assembly` is provided the all assemblies returned by `GetAssembliesAsync()` will be scanned.
 
